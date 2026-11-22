@@ -4,7 +4,7 @@
  * and optionally mass_queue (Music Assistant Queue Actions) for the queue tray and grouping checks.
  * Built by a non-developer with help from Claude (Anthropic). Provided as-is under the MIT license.
  */
-const CCM_VERSION = '2.1.0';
+const CCM_VERSION = '2.1.1';
 
 const I = {
   disc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg>',
@@ -187,7 +187,9 @@ class MAEasyPlayerCard extends HTMLElement {
     /* Hide a group's members only when this card actually offers that group. */
     all.forEach((e) => { const s = H.states[e]; if (s && s.attributes.mass_player_type === 'group' && !ex.has(e) && (!inc.length || inc.includes(e))) (this._baseMembers(e) || []).forEach((m) => children.add(m)); });
     return all.map((e) => H.states[e]).filter((s) => s && s.state !== 'unavailable' && !ex.has(s.entity_id) && !children.has(s.entity_id) && (!inc.length || inc.includes(s.entity_id))
-      && ((s.attributes.supported_features || 0) & 512))
+      && ((s.attributes.supported_features || 0) & 512)
+      /* MA also makes "dashboard" copies of some players (no mass_player_type) — hide those unless listed in include. */
+      && (s.attributes.mass_player_type || inc.includes(s.entity_id)))
       .sort((a, b) => this._pinRank(a.entity_id) - this._pinRank(b.entity_id) || (a.attributes.friendly_name || '').localeCompare(b.attributes.friendly_name || ''));
   }
 

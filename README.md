@@ -26,6 +26,10 @@ What that means for you:
 
 ---
 
+## What's new in 2.1.1
+
+- **No more duplicate speakers:** newer Music Assistant versions add a second "dashboard" copy of some players (for example two "Family Room TV" entries, one marked "Can't group"). The card now hides those copies. You can still show one by listing it under `include`.
+
 ## What's new in 2.1
 
 - **Discover page:** browse your library by genre (tap a genre for its albums, or its shuffle icon to play a random mix of that genre), plus Music Assistant's own suggestion rows such as recently added and favorites.
