@@ -26,6 +26,11 @@ What that means for you:
 
 ---
 
+## What's new in 2.1.2
+
+- **Sync groups follow changes you make in Music Assistant.** If you swap or add a speaker in a Music Assistant sync group, the card picks it up right away. Before, the card remembered a group's speakers the first time it saw the group, so after a swap it could show the group as "+1" or "2 speakers" and treat the group's own speaker as an extra one you had added.
+- The card now reads each group's speakers from the group's settings in Music Assistant, because newer Music Assistant versions can report that list as empty elsewhere. The speakers it hides because they belong to a sync group follow the same list.
+
 ## What's new in 2.1.1
 
 - **No more duplicate speakers:** newer Music Assistant versions add a second "dashboard" copy of some players (for example two "Family Room TV" entries, one marked "Can't group"). The card now hides those copies. You can still show one by listing it under `include`.
@@ -104,7 +109,7 @@ What that means for you:
 ### Manual
 
 1. Download `ma-easy-player-card.js` and copy it to `/config/www/`.
-2. Go to **Settings → Dashboards → Resources** and add `/local/ma-easy-player-card.js?v=2.1.0` as a **JavaScript module**.
+2. Go to **Settings → Dashboards → Resources** and add `/local/ma-easy-player-card.js?v=2.1.2` as a **JavaScript module**.
 3. Refresh your browser (Ctrl+Shift+R).
 
 ---
@@ -197,7 +202,7 @@ Instant mix asks Music Assistant for songs that are sonically similar to the one
 - **Library, search and Discover artwork over HTTPS.** Artwork comes straight from your Music Assistant server (usually `http://…:8095`, or whatever you set in `ma_url`). If you open your dashboard over HTTPS (for example through Nabu Casa), the browser may block those images and you'll see coloured tiles instead. Now Playing artwork always works because it goes through Home Assistant.
 - **Mute on speakers that don't report it:** some players (for example Music Assistant sync groups) never tell Home Assistant whether they're muted. The card remembers what it set, but each screen remembers separately, so a speaker muted from one screen won't show as muted on another.
 - **One-tap groups saved from the card live in that browser only.** Put groups you want everywhere in `presets`.
-- **Sync groups:** speakers that belong to a Music Assistant sync group are hidden individually and shown as the group.
+- **Sync groups:** speakers that belong to a Music Assistant sync group are hidden individually and shown as the group. The card reads a group's speakers through Music Assistant Queue Actions (`mass_queue`). Without it, the card remembers a group's speakers in each browser, so after you change a group's speakers in Music Assistant, close and reopen the app (or clear that site's data) if the group shows an extra speaker.
 - Grouping only works between speakers Music Assistant itself can sync.
 
 ---

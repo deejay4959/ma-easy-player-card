@@ -4,7 +4,7 @@
  * and optionally mass_queue (Music Assistant Queue Actions) for the queue tray and grouping checks.
  * Built by a non-developer with help from Claude (Anthropic). Provided as-is under the MIT license.
  */
-const CCM_VERSION = '2.1.1';
+const CCM_VERSION = '2.1.2';
 
 const I = {
   disc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg>',
@@ -153,6 +153,16 @@ class MAEasyPlayerCard extends HTMLElement {
       this._maPlayers = {};
       list.forEach((p) => { this._maPlayers[p.player_id] = p; });
       this._playersAt = Date.now();
+      /* A sync group's own members live in its saved config (static_group_members can come back empty). */
+      const base = {};
+      await Promise.all(list.filter((p) => p.type === 'group').map(async (g) => {
+        try {
+          const c = await this._svc('mass_queue', 'send_command', { config_entry_id: this._mqEntry, command: 'config/players/get', data: { player_id: g.player_id } }, null, true);
+          const v = c && c.response && c.response.values && c.response.values.group_members;
+          if (v && Array.isArray(v.value)) base[g.player_id] = v.value;
+        } catch (e) { /* fall back to static_group_members / cache */ }
+      }));
+      this._maBase = base;
     } catch (e) { /* grouping info optional */ }
   }
 
@@ -198,17 +208,24 @@ class MAEasyPlayerCard extends HTMLElement {
     return i < 0 ? 999 : i;
   }
 
-  /* Sync groups have their own fixed members; remember them so we only treat extras as "added". */
+  /* Sync groups have their own fixed members; remember them so we only treat extras as "added".
+   * Music Assistant's saved group config (or static_group_members) wins whenever it's loaded, so swapping
+   * a speaker in a sync group is picked up right away; the browser cache is only a fallback until then. */
   _baseMembers(e) {
     const s = this._st(e); if (!s || s.attributes.mass_player_type !== 'group') return [];
     const key = 'maep.base.' + e;
-    let base = lsGet(key, null);
     const pid = this._entToPid && this._entToPid[e];
     const ma = pid && this._maPlayers && this._maPlayers[pid];
+    const cfg = pid && this._maBase && this._maBase[pid];
+    const src = cfg && cfg.length ? cfg : (ma && ma.static_group_members && ma.static_group_members.length ? ma.static_group_members : null);
+    if (src) {
+      const live = src.map((p) => this._pidToEnt[p]).filter(Boolean);
+      if (JSON.stringify(live) !== JSON.stringify(lsGet(key, null))) lsSet(key, live);
+      return live;
+    }
+    let base = lsGet(key, null);
     if (!base) {
-      base = ma && ma.static_group_members && ma.static_group_members.length
-        ? ma.static_group_members.map((p) => this._pidToEnt[p]).filter(Boolean)
-        : (s.attributes.group_members || []).slice();
+      base = (s.attributes.group_members || []).slice();
       lsSet(key, base);
     }
     return base;
